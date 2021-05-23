@@ -1,0 +1,6 @@
+TOKEN=""  # API token from ballchasing.com
+API_ENDPOINT="https://ballchasing.com/api/replays"
+API_RPS=2
+DATABASE_LOCATION="ballcrucher.db"
+PLAYER_PLATFORM=""
+PLAYER_ID=""
