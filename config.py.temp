@@ -1,8 +1,8 @@
 TOKEN=""  # API token from ballchasing.com
 API_ENDPOINT="https://ballchasing.com/api/replays"
 API_RPS=2
-DATABASE_LOCATION="ballcrucher.db"
+DATABASE_LOCATION="ballcruncher.db"
 GROUP_IDS=[
-    "steam:76561197989552697",  # zimmian
+    "steam:76561197989552697",
 ]
 DRAW_PROBABILITY = 0

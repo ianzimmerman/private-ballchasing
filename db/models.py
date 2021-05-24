@@ -90,6 +90,7 @@ class Replay(Base):
     duration = Column(Float)
     quality = Column(Float)
     winner_chance = Column(Float)
+    player_count = Column(Integer)
 
     players = relationship("PlayerResult", back_populates="replay")
 

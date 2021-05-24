@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     if args.stat == 'rating':
         q = session.query(models.Player)
-        players = [p for p in q if len(p.results) > 49]
+        players = [p for p in q if len(p.results) > 29]
         leaderboard = sorted(players, key=ENV.expose, reverse=True)
             
         for l in leaderboard:

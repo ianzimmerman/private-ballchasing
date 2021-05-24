@@ -22,6 +22,7 @@ if __name__ == '__main__':
                     playlist_id=r.playlist_id,
                     date=r.date,
                     duration=r.duration,
+                    player_count=len(m.players)
                 )
                 session.add(replay)
                 session.commit()
