@@ -1,5 +1,6 @@
 from time import sleep
 from typing import List
+from pydantic import ValidationError
 
 import requests
 from config import API_ENDPOINT, API_RPS, GROUP_IDS, TOKEN
@@ -12,18 +13,19 @@ class Balls:
             'Authorization': TOKEN
         }
     
-    def fetch(self, id: str) -> List[Replay]:
+    def chase(self, id: str) -> List[Replay]:
         sleep(1/API_RPS)
         payload = {
             'player-id': id,
-            'playlist': 'private'
+            'playlist': 'private',
+            'count': 200
         }
         resp = requests.get(API_ENDPOINT, params=payload, headers=self.headers)
-        return [Replay(**r) for r in resp.json().get('list')]
-
-    def chase(self) -> List[Replay]:
         replays = []
-        for id in GROUP_IDS:
-            replays.extend(self.fetch(id))
+        for r in resp.json().get('list'):
+            try:
+                replays.append(Replay(**r))
+            except ValidationError as e:
+                print(r)
         
         return replays

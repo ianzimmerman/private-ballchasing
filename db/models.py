@@ -69,9 +69,11 @@ class Alias(Base):
 class Replay(Base):
     __tablename__ = "replay"
     id = Column(String, primary_key=True)
+    link = Column(String)
     rocket_league_id = Column(String, unique=True)
     playlist_id = Column(String, nullable=False)
     date = Column(DateTime, nullable=False)
+    duration = Column(Float)
     quality = Column(Float)
     winner_chance = Column(Float)
 
@@ -91,6 +93,9 @@ class PlayerResult(Base):
     match_win = Column(Boolean, nullable=False, default=False)
     replay_id = Column(String, ForeignKey('replay.id'))
     player_id = Column(String, ForeignKey('player.id'))
+    score = Column(Integer)
+    start_time = Column(Float)
+    end_time = Column(Float)
     replay = relationship("Replay", back_populates="players")
     player = relationship("Player", back_populates="results")
 

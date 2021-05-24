@@ -1,0 +1,23 @@
+from sqlalchemy import func, and_
+import trueskill
+from db import session, models
+import argparse
+
+
+ENV = trueskill.TrueSkill(draw_probability=0)
+parser = argparse.ArgumentParser(description='Find some stats')
+parser.add_argument('stat', metavar='S', type=str, help='performance, ')
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    print(args)
+
+    if args.stat == 'rating':
+        q = session.query(models.Player)
+        players = [p for p in q if len(p.results) > 99]
+        leaderboard = sorted(players, key=ENV.expose, reverse=True)
+            
+        for l in leaderboard:
+            print(f"{l.display_name.ljust(20)} ({str(round(ENV.expose(l.rating), 1)).rjust(5)}) |  GP: {str(l.games_played).rjust(3)}    WR: {str(round(100*(l.wins/l.games_played))).rjust(3)}%")
+    else:
+        raise NotImplementedError(f'"{args.stat}" is an unknown stat')

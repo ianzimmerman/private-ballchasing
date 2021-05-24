@@ -10,6 +10,9 @@ class PlayerID(BaseModel):
 class Player(BaseModel):
     name: str
     id: PlayerID
+    score: int
+    start_time: float
+    end_time: float
 
 class Team(BaseModel):
     name: Optional[str]
@@ -18,11 +21,13 @@ class Team(BaseModel):
 
 class Replay(BaseModel):
     id: str
+    link: str
     rocket_league_id: str
     playlist_id: str
     date: datetime
     blue: Team
     orange: Team
+    duration: int
 
 '''
 {

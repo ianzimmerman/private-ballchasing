@@ -33,8 +33,14 @@ if __name__ == "__main__":
             { p.id: p.rating for p in replay.losers }
         ]
 
-        quality = ENV.quality(rating_groups)
-
+        try:
+            replay.quality = ENV.quality(rating_groups)
+            replay.winner_chance = win_probability(replay.winners, replay.losers)
+        
+        except ValueError as e:
+            print(e)
+            continue
+        
         rated_rating_groups = ENV.rate(rating_groups)
         for p in replay.winners:
             p.rating = rated_rating_groups[0][p.id]
@@ -42,9 +48,6 @@ if __name__ == "__main__":
         for p in replay.losers:
             p.rating = rated_rating_groups[1][p.id]
         
-        replay.quality = quality
-        replay.winner_chance = win_probability(replay.winners, replay.losers)
-
         session.commit()
         
-        print(f"{replay.date} -- {replay.playlist_id} -- {round(quality*100)}% -- {round(replay.winner_chance*100)}%")
+        print(f"{replay.date} -- {replay.playlist_id} -- {round(replay.quality*100)}% -- {round(replay.winner_chance*100)}%")
