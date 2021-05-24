@@ -1,7 +1,12 @@
+from typing import List
+
+import trueskill
+from sqlalchemy import Column, Float, String, func
+from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 from sqlalchemy.orm import declarative_base, relationship
-from sqlalchemy import Column, String, func
 from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.sql.sqltypes import Boolean, DateTime, Integer
+
 from db import engine, session
 
 Base = declarative_base()
@@ -9,9 +14,22 @@ Base = declarative_base()
 class Player(Base):
     __tablename__ = "player"
     id = Column(String, primary_key=True)
+    mu = Column(Float)
+    sigma = Column(Float)
+
     aliases = relationship("Alias", back_populates="player")
     results = relationship("PlayerResult")
     
+    @property
+    def rating(self) -> trueskill.Rating:
+        rating = trueskill.Rating(self.mu, self.sigma)
+        return rating
+    
+    @rating.setter
+    def rating(self, rating: trueskill.Rating):
+        self.sigma = rating.sigma
+        self.mu = rating.mu
+
     @property
     def display_name(self):
         dn = session.query(Alias).filter(
@@ -29,7 +47,7 @@ class Player(Base):
             PlayerResult.match_win==1
         ).with_entities(func.count()).scalar()
     
-    @property
+    @hybrid_property
     def games_played(self):
         return session.query(
             PlayerResult
@@ -54,8 +72,18 @@ class Replay(Base):
     rocket_league_id = Column(String, unique=True)
     playlist_id = Column(String, nullable=False)
     date = Column(DateTime, nullable=False)
+    quality = Column(Float)
+    winner_chance = Column(Float)
 
     players = relationship("PlayerResult", back_populates="replay")
+
+    @property
+    def winners(self) -> List[Player]:
+        return [p.player for p in self.players if p.match_win == True]
+    
+    @property
+    def losers(self) -> List[Player]:
+        return [p.player for p in self.players if p.match_win == False]
 
 class PlayerResult(Base):
     __tablename__ = "player_result"

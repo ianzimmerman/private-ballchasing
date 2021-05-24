@@ -1,22 +1,14 @@
-from os import name
-from sqlalchemy.sql.functions import count
-from sqlalchemy.sql.selectable import Alias
 from sqlalchemy.exc import IntegrityError
-from schema.replay import PlayerID
+
 from core.balls import Balls
 from core.match import Match
-from db import session, models
-from config import PLAYER_ID, PLAYER_PLATFORM
-
-MYID = PlayerID(
-    platform=PLAYER_PLATFORM,
-    id=PLAYER_ID
-)
+from db import models, session
+from schema.replay import PlayerID
 
 
 if __name__ == '__main__':
-    b = Balls(MYID)
-    replays = b.fetch()
+    balls = Balls()
+    replays = balls.chase()
     for i, r in enumerate(replays):
         m = Match(r)
         try:
