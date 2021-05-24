@@ -4,6 +4,8 @@ greenlet==1.1.0
 idna==2.10
 pydantic==1.8.2
 requests==2.25.1
+six==1.16.0
 SQLAlchemy==1.4.15
+trueskill==0.4.5
 typing-extensions==3.10.0.0
 urllib3==1.26.4

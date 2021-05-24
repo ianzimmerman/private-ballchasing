@@ -1,12 +1,11 @@
+import trueskill
 from db import session, models
+
+ENV = trueskill.TrueSkill(draw_probability=0)
 
 if __name__ == "__main__":
     players = session.query(models.Player).all()
-    for p in players:
-        p_result = {
-            'name': p.display_name,
-            'games_played': p.games_played,
-            'win_rate': round(p.wins/p.games_played, 3)
-        }
+    leaderboard = sorted(players, key=ENV.expose, reverse=True)
         
-        print(p_result)
+    for l in leaderboard:
+        print(f"{l.display_name.ljust(20)} | GP: {str(l.games_played).ljust(6)}  WR: {round(100*(l.wins/l.games_played))}%, Rating: {round(ENV.expose(l.rating), 1)}")
