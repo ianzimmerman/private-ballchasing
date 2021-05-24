@@ -1,5 +1,5 @@
 from typing import List
-
+from statistics import mean
 import trueskill
 from sqlalchemy import Column, Float, String, func
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
@@ -54,6 +54,20 @@ class Player(Base):
         ).filter(
             PlayerResult.player_id==self.id
         ).with_entities(func.count()).scalar()
+    
+    @property
+    def expected_winrate(self):
+        rates = []
+        q = session.query(Replay.winner_chance, PlayerResult.match_win).join(PlayerResult).filter(PlayerResult.player_id == self.id).filter(Replay.winner_chance != None)
+        for r in q:
+            winner_rate, winner = r
+            if winner:
+                rates.append(winner_rate)
+            else:
+                rates.append(1 - winner_rate)
+        
+        return mean(rates)
+
 
 
 class Alias(Base):
