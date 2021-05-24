@@ -53,6 +53,7 @@ class Alias(Base):
 class Replay(Base):
     __tablename__ = "replay"
     id = Column(String, primary_key=True)
+    match_hash = Column(Integer, unique=True)
     link = Column(String)
     rocket_league_id = Column(String, unique=True)
     playlist_id = Column(String, nullable=False)

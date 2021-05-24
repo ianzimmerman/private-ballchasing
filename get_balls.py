@@ -3,9 +3,13 @@ from sqlalchemy.exc import IntegrityError
 from core.balls import Balls
 from core.match import Match
 from db import models, session
-from schema.replay import PlayerID
+from schema.replay import Player, PlayerID
 from config import GROUP_IDS
 
+
+def is_rocket_friend(player: Player):
+    str_id = f"{player.id.platform}:{player.id.id}"
+    return str_id in GROUP_IDS
 
 if __name__ == '__main__':
     balls = Balls()
@@ -14,20 +18,25 @@ if __name__ == '__main__':
         replays = balls.chase(group_id)
         for i, r in enumerate(replays):
             m = Match(r)
-            try:
-                replay = models.Replay(
-                    id=r.id,
-                    rocket_league_id=r.rocket_league_id,
-                    link=f"https://ballchasing.com/replay/{r.id}",
-                    playlist_id=r.playlist_id,
-                    date=r.date,
-                    duration=r.duration,
-                    player_count=len(m.players)
-                )
-                session.add(replay)
-                session.commit()
-            except IntegrityError:
-                session.rollback()
+            rf_count = sum([1 for p in m.players if is_rocket_friend(p)])
+            if rf_count > 2:
+                try:
+                    replay = models.Replay(
+                        id=r.id,
+                        match_hash=m.match_hash,
+                        rocket_league_id=r.rocket_league_id,
+                        link=f"https://ballchasing.com/replay/{r.id}",
+                        playlist_id=r.playlist_id,
+                        date=r.date,
+                        duration=r.duration,
+                        player_count=len(m.players)
+                    )
+                    session.add(replay)
+                    session.commit()
+                except IntegrityError:
+                    session.rollback()
+                    continue
+            else:
                 continue
 
             for player in m.players:

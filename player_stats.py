@@ -8,7 +8,7 @@ from tabulate import tabulate
 
 ENV = trueskill.TrueSkill(draw_probability=0)
 parser = argparse.ArgumentParser(description='Find some stats')
-parser.add_argument('stat', metavar='S', type=str, help='performance, ')
+parser.add_argument('stat', metavar='S', type=str, help='rating, ')
 parser.add_argument('--players', type=int, help='limit to lobbies with x players')
 parser.add_argument('--min', type=int, help='limit to min x games played')
 

@@ -23,8 +23,22 @@ class Match:
     
     @property
     def players(self):
-        return self.winners + self.losers
+        all_players = self.winners + self.losers
+        return [p for p in all_players if self.play_percentage(p) >= .5]
+    
+    def play_percentage(self, player: Player):
+        p_duration = player.end_time - player.start_time
+        return p_duration/self.replay.duration
     
     def player_won(self, player: Player):
         return player in self.winners
+    
+    @property
+    def match_hash(self):
+        match_date = self.replay.date.strftime("%Y%m%d")
+        blue_score = sum([p.score for p in self.replay.blue.players])
+        orange_score = sum([p.score for p in self.replay.orange.players])
+        
+        hash_data = (match_date, blue_score, orange_score, self.replay.duration)
+        return hash(hash_data)
     
