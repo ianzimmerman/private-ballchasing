@@ -32,42 +32,12 @@ class Player(Base):
 
     @property
     def display_name(self):
+        # TODO: add an index on Alias.db for player_id
         dn = session.query(Alias).filter(
             Alias.player_id == self.id
         ).order_by(Alias.count.desc()).first()
 
         return dn.name
-    
-    @property
-    def wins(self):
-        return session.query(
-            PlayerResult
-        ).filter(
-            PlayerResult.player_id==self.id,
-            PlayerResult.match_win==1
-        ).with_entities(func.count()).scalar()
-    
-    @hybrid_property
-    def games_played(self):
-        return session.query(
-            PlayerResult
-        ).filter(
-            PlayerResult.player_id==self.id
-        ).with_entities(func.count()).scalar()
-    
-    @property
-    def expected_winrate(self):
-        rates = []
-        q = session.query(Replay.winner_chance, PlayerResult.match_win).join(PlayerResult).filter(PlayerResult.player_id == self.id).filter(Replay.winner_chance != None)
-        for r in q:
-            winner_rate, winner = r
-            if winner:
-                rates.append(winner_rate)
-            else:
-                rates.append(1 - winner_rate)
-        
-        return mean(rates)
-
 
 
 class Alias(Base):
