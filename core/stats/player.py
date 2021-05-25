@@ -1,6 +1,7 @@
 from schema import replay
 from db import models, session
 from sqlalchemy import func, case, text, and_
+from statistics import mean
 
 
 class PlayerStats:
@@ -60,9 +61,6 @@ class PlayerStats:
     def head_2_head(self, player2_name: str):
         p1 = self.player
         p2 = models.Player.from_name(player2_name)
-        '''
-            player 1 wins | player 2 wins | total games | player 1 with player 2 | player 1 agaisnt player 2
-        '''
 
         t = models.PlayerResult
 
@@ -85,11 +83,19 @@ class PlayerStats:
                     (and_(t.match_win==True, t.player_id==p2.id), 1),
                     else_=0
                 )
-            ).label('p2_win')
+            ).label('p2_win'),
+            func.avg(
+                case(
+                    (t.match_win==True, models.Replay.winner_chance),
+                    else_=(1-models.Replay.winner_chance)
+                )
+            ).label('expected_win_rate'),
+            models.Replay.player_count
         ).group_by(
             t.replay_id
         ).filter(
-            t.player_id.in_([p1.id, p2.id])
+            t.player_id.in_([p1.id, p2.id]),
+            models.Replay.id == models.PlayerResult.replay_id
         ).having(
             text('in_match = 2')
         )
@@ -107,17 +113,24 @@ class PlayerStats:
         }
 
         if all_games > 0:
+            # win together rate
+            wtr = round(len([m for m in matches if m.p1_win == 1 and m.p2_win == 1])/together_games, 3)*100
+            
+            # expected wins when together
+            ewr = round(mean([m.expected_win_rate for m in matches if m.p1_win == m.p2_win]), 3)*100
+
             result.update({
                 # 'p1': p1.display_name,
                 # 'p2': p2.display_name,
                 # 'games_played': len(matches),
                 'match_rate %': round(together_games/all_games, 3)*100,
                 # 'games_opposed': opposed_games,
-                'win_together %': round(len([m for m in matches if m.p1_win == 1 and m.p2_win == 1])/together_games, 3)*100,
+                'win_together %': wtr,
+                'expected_win %': ewr,
+                '+/-': wtr - ewr,
                 # 'lost_together': len([m for m in matches if m.p1_win == 0 and m.p2_win == 0])/together_games,
                 'p1_beats_p2 %': round(len([m for m in matches if m.p1_win == 1 and m.p2_win == 0])/opposed_games, 3)*100,
                 #'p2_beat_p1': len([m for m in matches if m.p1_win == 0 and m.p2_win == 1])/opposed_games
             })
         
         return result
-
