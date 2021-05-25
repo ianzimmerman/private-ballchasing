@@ -71,4 +71,4 @@ if __name__ == '__main__':
     pts = PrivateTrueSkill()
     pts.rate_matches()
     print('Complete!')
-    session.close()        
+    session.close()

@@ -6,6 +6,7 @@ from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.sql.sqltypes import Boolean, DateTime, Integer
+from schema.replay import Player as PlayerSchema
 
 from db import engine, session
 
@@ -38,6 +39,15 @@ class Player(Base):
         ).order_by(Alias.count.desc()).first()
 
         return dn.name
+    
+    @staticmethod
+    def from_name(name: str):
+        alias = session.query(Alias).filter(Alias.name.ilike(f"{name}")).one()
+        try:
+            return alias.player
+        except Exception as e:
+            print(e)
+            return None
 
 
 class Alias(Base):
@@ -47,7 +57,7 @@ class Alias(Base):
     player_id = Column(String, ForeignKey('player.id'))
     count = Column(Integer, default=1)
 
-    player = relationship("Player", back_populates="aliases")
+    player: Player = relationship("Player", back_populates="aliases")
 
 
 class Replay(Base):

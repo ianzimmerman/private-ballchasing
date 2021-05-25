@@ -1,10 +1,16 @@
+from schema import replay
 from db import models, session
-from sqlalchemy import func, case
+from sqlalchemy import func, case, text, and_
 
 
 class PlayerStats:
-    def __init__(self, player_id) -> None:
-        self.player = session.query(models.Player).get(player_id)
+    def __init__(self, player_id=None, player_name=None) -> None:
+        if player_id:
+            self.player = session.query(models.Player).get(player_id)
+        elif player_name:
+            self.player = models.Player.from_name(player_name)
+        else:
+            raise ValueError("Requires player id or player name")
     
     def win_rate(self, player_count=None):
         q = session.query(
@@ -50,3 +56,59 @@ class PlayerStats:
             return result_dict
         
         return {}
+
+    def head_2_head(self, player2_name: str):
+        p1 = self.player
+        p2 = models.Player.from_name(player2_name)
+        '''
+            player 1 wins | player 2 wins | total games | player 1 with player 2 | player 1 agaisnt player 2
+        '''
+
+        t = models.PlayerResult
+
+        q = session.query(
+            t.replay_id,
+            func.count(
+                case(
+                    (t.player_id.in_([p1.id, p2.id]), 1),
+                    else_=0
+                )
+            ).label('in_match'),
+            func.sum(
+                case(
+                    (and_(t.match_win==True, t.player_id==p1.id), 1),
+                    else_=0
+                )
+            ).label('p1_win'),
+            func.sum(
+                case(
+                    (and_(t.match_win==True, t.player_id==p2.id), 1),
+                    else_=0
+                )
+            ).label('p2_win')
+        ).group_by(
+            t.replay_id
+        ).filter(
+            t.player_id.in_([p1.id, p2.id])
+        ).having(
+            text('in_match = 2')
+        )
+
+        matches = q.all()
+
+        all_games = len(matches)
+        together_games = len([m for m in matches if m.p1_win == m.p2_win])
+        opposed_games = all_games - together_games
+
+        return {
+            'p1': p1.display_name,
+            'p2': p2.display_name,
+            'games_played': len(matches),
+            'match_rate %': round(together_games/all_games, 3)*100,
+            # 'games_opposed': opposed_games,
+            'win_rate %': round(len([m for m in matches if m.p1_win == 1 and m.p2_win == 1])/together_games, 3)*100,
+            # 'lost_together': len([m for m in matches if m.p1_win == 0 and m.p2_win == 0])/together_games,
+            'p1_beats_p2 %': round(len([m for m in matches if m.p1_win == 1 and m.p2_win == 0])/opposed_games, 3)*100,
+            #'p2_beat_p1': len([m for m in matches if m.p1_win == 0 and m.p2_win == 1])/opposed_games
+        }
+
