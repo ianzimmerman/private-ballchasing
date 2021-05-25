@@ -1,3 +1,4 @@
+from config import GROUP_IDS
 from schema.replay import Player
 from sqlalchemy import func, and_
 import trueskill
@@ -35,12 +36,22 @@ if __name__ == "__main__":
         print(tabulate(leaders, headers="keys", tablefmt="github"))
         
     elif args.stat == 'headsup':
-        if all([args.p1, args.p2]):
-            stats = PlayerStats(player_name=args.p1)
-            print(tabulate([stats.head_2_head(args.p2)], headers="keys", tablefmt="github"))
-        
+        stats = PlayerStats(player_name=args.p1)
+        headsup = []
+        if args.p1 and args.p2:
+            headsup.append(
+                stats.head_2_head(args.p2)
+            )
+        elif args.p1:
+            for player_id in GROUP_IDS:
+                player = session.query(models.Player).get(player_id)
+                headsup.append(
+                    stats.head_2_head(player.display_name)
+                )
         else:
             raise ValueError('needs p1 and p2 nicks')
+        
+        print(tabulate(headsup, headers="keys", tablefmt="github"))
     
     else:
         raise NotImplementedError(f'"{args.stat}" is an unknown stat. Try "python player_stats.py rating"')

@@ -100,15 +100,24 @@ class PlayerStats:
         together_games = len([m for m in matches if m.p1_win == m.p2_win])
         opposed_games = all_games - together_games
 
-        return {
+        result = {
             'p1': p1.display_name,
             'p2': p2.display_name,
-            'games_played': len(matches),
-            'match_rate %': round(together_games/all_games, 3)*100,
-            # 'games_opposed': opposed_games,
-            'win_rate %': round(len([m for m in matches if m.p1_win == 1 and m.p2_win == 1])/together_games, 3)*100,
-            # 'lost_together': len([m for m in matches if m.p1_win == 0 and m.p2_win == 0])/together_games,
-            'p1_beats_p2 %': round(len([m for m in matches if m.p1_win == 1 and m.p2_win == 0])/opposed_games, 3)*100,
-            #'p2_beat_p1': len([m for m in matches if m.p1_win == 0 and m.p2_win == 1])/opposed_games
+            'games_played': all_games,
         }
+
+        if all_games > 0:
+            result.update({
+                # 'p1': p1.display_name,
+                # 'p2': p2.display_name,
+                # 'games_played': len(matches),
+                'match_rate %': round(together_games/all_games, 3)*100,
+                # 'games_opposed': opposed_games,
+                'win_together %': round(len([m for m in matches if m.p1_win == 1 and m.p2_win == 1])/together_games, 3)*100,
+                # 'lost_together': len([m for m in matches if m.p1_win == 0 and m.p2_win == 0])/together_games,
+                'p1_beats_p2 %': round(len([m for m in matches if m.p1_win == 1 and m.p2_win == 0])/opposed_games, 3)*100,
+                #'p2_beat_p1': len([m for m in matches if m.p1_win == 0 and m.p2_win == 1])/opposed_games
+            })
+        
+        return result
 
