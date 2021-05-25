@@ -22,10 +22,10 @@ class Balls:
         }
         resp = requests.get(API_ENDPOINT, params=payload, headers=self.headers)
         replays = []
-        for r in resp.json().get('list'):
+        for r in resp.json().get('list', []):
             try:
                 replays.append(Replay(**r))
             except ValidationError as e:
-                print(r)
+                print(f"{e}: https://ballchasing.com/replay/{r.get('id')}")
         
         return replays

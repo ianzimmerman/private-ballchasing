@@ -22,6 +22,7 @@ class Team(BaseModel):
 class Replay(BaseModel):
     id: str
     match_hash: Optional[int]
+    replay_title: str
     link: str
     rocket_league_id: str
     playlist_id: str

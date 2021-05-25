@@ -1,5 +1,6 @@
 from schema.replay import Player, Replay
-
+from config import GROUP_IDS
+import hashlib
 
 class Match:
     def __init__(self, replay: Replay) -> None:
@@ -32,13 +33,24 @@ class Match:
     
     def player_won(self, player: Player):
         return player in self.winners
+
+    @property
+    def group_member_count(self):
+        members_in_match = []
+        for player in self.players:
+            str_id = f"{player.id.platform}:{player.id.id}"
+            if str_id in GROUP_IDS:
+                members_in_match.append(str_id)
+        
+        return len(members_in_match)
+
     
     @property
     def match_hash(self):
         match_date = self.replay.date.strftime("%Y%m%d")
-        blue_score = sum([p.score for p in self.replay.blue.players])
-        orange_score = sum([p.score for p in self.replay.orange.players])
+        blue_points = sum([p.score for p in self.replay.blue.players])
+        orange_points = sum([p.score for p in self.replay.orange.players])
         
-        hash_data = (match_date, blue_score, orange_score, self.replay.duration)
-        return hash(hash_data)
+        hash_data = f"{match_date}-{blue_points}-{orange_points}".encode()
+        return hashlib.sha224(hash_data).hexdigest()
     

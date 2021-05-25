@@ -38,20 +38,15 @@ class PlayerStats:
         if result:
             wr = round(result.games_won/result.games_played, 3)
             ewr = round(result.expected_win_rate, 3)
-            wrae = round((wr-ewr)/wr, 3) if wr else 0
+            wae = round((result.games_won - (result.expected_win_rate * result.games_played))/result.games_played, 3)*100   # round((wr-ewr)/wr, 3) if wr else 0
             result_dict = {
                 'games_won': result.games_won,
                 'games_played': result.games_played,
                 'win_rate': wr,
                 'expected_win_rate': ewr,
-                'wrae': round(wrae*100, 1)
+                'wae': wae
             }
         
             return result_dict
         
         return {}
-    
-
-    
-
-

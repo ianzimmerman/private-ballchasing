@@ -2,7 +2,7 @@ from sqlalchemy import func, and_
 import trueskill
 from db import session, models
 import argparse
-from core.stats import PlayerStats
+from core.stats.player import PlayerStats
 from tabulate import tabulate
 
 

@@ -1,29 +1,26 @@
 from sqlalchemy.exc import IntegrityError
 
+from config import GROUP_IDS
 from core.balls import Balls
 from core.match import Match
+from core.skill import PrivateTrueSkill
 from db import models, session
-from schema.replay import Player, PlayerID
-from config import GROUP_IDS
-
-
-def is_rocket_friend(player: Player):
-    str_id = f"{player.id.platform}:{player.id.id}"
-    return str_id in GROUP_IDS
 
 if __name__ == '__main__':
     balls = Balls()
     
     for group_id in GROUP_IDS:
+        print(f"Fetching replays for {group_id}...", end=" ", flush=True)
         replays = balls.chase(group_id)
+        print(f"{len(replays)} replays returned...", end=" ", flush=True)
         for i, r in enumerate(replays):
             m = Match(r)
-            rf_count = sum([1 for p in m.players if is_rocket_friend(p)])
-            if rf_count > 2:
+            if m.group_member_count > 2 and r.duration >= 300:
                 try:
                     replay = models.Replay(
                         id=r.id,
                         match_hash=m.match_hash,
+                        replay_title=r.replay_title,
                         rocket_league_id=r.rocket_league_id,
                         link=f"https://ballchasing.com/replay/{r.id}",
                         playlist_id=r.playlist_id,
@@ -68,5 +65,10 @@ if __name__ == '__main__':
                 )
 
                 session.commit()
-
+        print(f"Saved.", flush=True)
+    
+    print('Rating Matches...', end=" ", flush=True)
+    pts = PrivateTrueSkill()
+    pts.rate_matches()
+    print('Complete!')
     session.close()        
