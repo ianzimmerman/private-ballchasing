@@ -46,7 +46,7 @@ class Player(Base):
     
     @staticmethod
     def from_name(name: str):
-        alias = session.query(Alias).filter(Alias.name.ilike(f"{name}")).order_by(Alias.count.desc()).first()
+        alias = session.query(Alias).filter(Alias.name.ilike(f"{name}%")).order_by(Alias.count.desc()).first()
         try:
             return alias.player
         except Exception as e:

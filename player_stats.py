@@ -1,13 +1,12 @@
-from config import GROUP_IDS
-from schema.replay import Player
-from sqlalchemy import func, and_
-import trueskill
-from db import session, models
 import argparse
-from core.stats.player import PlayerStats
-from tabulate import tabulate
 from typing import List
 
+import trueskill
+from tabulate import tabulate
+
+from config import MEMBER_IDS
+from core.stats.player import PlayerStats
+from db import models, session
 
 ENV = trueskill.TrueSkill(draw_probability=0)
 parser = argparse.ArgumentParser(description='Find some stats')
@@ -17,7 +16,9 @@ parser.add_argument('--min', type=int, help='limit to min x games played')
 parser.add_argument('--p1', type=str, help='player 1')
 parser.add_argument('--p2', type=str, help='player 2')
 
-def stat_print(stats: List[dict]):
+def stat_print(stats: List[dict], sort_key: str=None):
+    if sort_key:
+        stats = sorted(stats, key=lambda x: x.get(sort_key), reverse=True)
     print(tabulate(stats, headers="keys", tablefmt="pipe"))
 
 if __name__ == "__main__":
@@ -48,6 +49,8 @@ if __name__ == "__main__":
         
         headsup = []
         if player1 and player2:
+            print(player1.aka)
+            print(player2.aka)
             headsup.append(
                 stats.head_2_head(player1, player2)
             )
@@ -60,21 +63,21 @@ if __name__ == "__main__":
                 if not isinstance(v, str):
                     deltas[k] = p1_wins[k] - p2_wins[k]
                 else:
-                    deltas[k] = "Delta"
+                    deltas[k] = " "
 
             stat_print([p1_wins, p2_wins, divider, deltas])
             print(" ")
 
         elif player1:
-            for player_id in GROUP_IDS:
-                player2 = session.query(models.Player).get(player_id)
+            for player2 in session.query(models.Player):
+                # player2 = session.query(models.Player).get(player_id)
                 if player1 != player2:
                     headsup.append(
                         stats.head_2_head(player1, player2)
                     )
             
         
-        stat_print(headsup)
+        stat_print(headsup, 'games_played')
     
     else:
         raise NotImplementedError(f'"{args.stat}" is an unknown stat. Try "python player_stats.py rating"')

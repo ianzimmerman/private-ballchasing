@@ -1,5 +1,5 @@
 from schema.replay import Player, Replay
-from config import GROUP_IDS
+from config import MEMBER_IDS
 import hashlib
 
 class Match:
@@ -39,7 +39,7 @@ class Match:
         members_in_match = []
         for player in self.players:
             str_id = f"{player.id.platform}:{player.id.id}"
-            if str_id in GROUP_IDS:
+            if str_id in MEMBER_IDS:
                 members_in_match.append(str_id)
         
         return len(members_in_match)

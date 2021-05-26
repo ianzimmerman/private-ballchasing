@@ -1,17 +1,28 @@
 from sqlalchemy.exc import IntegrityError
-
-from config import GROUP_IDS
+from datetime import datetime, timedelta
+from config import MEMBER_IDS, GROUP_IDS
 from core.balls import Balls
 from core.match import Match
 from core.skill import PrivateTrueSkill
 from db import models, session
 
+# months_to_grab = 18
+# date_today = datetime(2021, 5, 25)
+# delta = timedelta(days=30)
+
+# dates = [date_today-(n*delta) for n in range(months_to_grab)]
+# print(dates)
+
 if __name__ == '__main__':
     balls = Balls()
-    
-    for group_id in GROUP_IDS:
-        print(f"Fetching replays for {group_id}...", end=" ", flush=True)
-        replays = balls.chase(group_id)
+    for id in MEMBER_IDS:
+    #for id in GROUP_IDS:
+        print(f"Fetching replays for {id}...", end=" ", flush=True)
+        # replays = [] #balls.chase_groups(id)
+        replays = balls.chase(id)
+        # for date in dates:
+        #     replays.extend(balls.chase(id, date))
+
         print(f"{len(replays)} replays returned...", end=" ", flush=True)
         for i, r in enumerate(replays):
             m = Match(r)

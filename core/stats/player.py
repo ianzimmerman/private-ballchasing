@@ -55,7 +55,7 @@ class PlayerStats:
                 'games_played': stats.games_played,
                 'win_rate': wr,
                 'expected_win_rate': ewr,
-                'wae': wae
+                'wae': wae,
             })
         
         return results
@@ -121,10 +121,10 @@ class PlayerStats:
 
         if all_games > 0:
             # win together rate
-            wtr = round(len([m for m in matches if m.p1_win == 1 and m.p2_win == 1])/together_games, 3)*100
+            wtr = round(len([m for m in matches if m.p1_win == 1 and m.p2_win == 1])/together_games, 3)*100 if together_games else 0
             
             # expected wins when together
-            ewr = round(mean([m.expected_win_rate for m in matches if m.p1_win == m.p2_win]), 3)*100
+            ewr = round(mean([m.expected_win_rate for m in matches if m.p1_win == m.p2_win]), 3)*100 if together_games else 0
 
             result.update({
                 # 'p1': p1.display_name,
@@ -136,7 +136,7 @@ class PlayerStats:
                 'expected_win %': ewr,
                 '+/-': wtr - ewr,
                 # 'lost_together': len([m for m in matches if m.p1_win == 0 and m.p2_win == 0])/together_games,
-                'p1_beats_p2 %': round(len([m for m in matches if m.p1_win == 1 and m.p2_win == 0])/opposed_games, 3)*100,
+                'p1_beats_p2 %': round(len([m for m in matches if m.p1_win == 1 and m.p2_win == 0])/opposed_games, 3)*100 if opposed_games else 0,
                 #'p2_beat_p1': len([m for m in matches if m.p1_win == 0 and m.p2_win == 1])/opposed_games
             })
         
