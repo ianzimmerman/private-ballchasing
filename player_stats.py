@@ -1,16 +1,17 @@
 import argparse
+from itertools import combinations
 from typing import List
 
-from core.skill import PrivateTrueSkill
 from tabulate import tabulate
 
 from config import MEMBER_IDS
+from core.skill import PrivateTrueSkill
 from core.stats.player import PlayerStats
 from db import models, session
 
 ENV = PrivateTrueSkill().env
 parser = argparse.ArgumentParser(description='Find some stats')
-parser.add_argument('stat', type=str, choices=['rating', 'headsup'])
+parser.add_argument('stat', type=str, choices=['rating', 'headsup', 'team'])
 parser.add_argument('--pc', type=int, help='limit to lobbies with exactly player count (pc)')
 parser.add_argument('--mc', type=int, help='limit to lobbies with minimum member count (mc)')
 
@@ -18,6 +19,7 @@ parser.add_argument('--min', type=int, help='limit display to min x games played
 
 parser.add_argument('--p1', type=str, help='player 1 nick name')
 parser.add_argument('--p2', type=str, help='player 2 nick name')
+parser.add_argument('--team', type=str, help='csv of nicks')
 
 def stat_print(stats: List[dict], sort_key: str=None):
     if sort_key:
@@ -85,5 +87,17 @@ if __name__ == "__main__":
         
         stat_print(headsup, 'games_played')
     
+    elif args.stat == 'team':
+        if args.team:
+            player_combos = [[player.id for player in [models.Player.from_name(p) for p in args.team.split(',')]]]
+        else:
+            player_combos = list(combinations(MEMBER_IDS, args.pc//2))
+        
+        results = []
+        for combo in player_combos:
+            if result := ps.team_result(combo):
+                results.append(result)
+        
+        stat_print(results, 'games_played')
     else:
         raise NotImplementedError(f'"{args.stat}" is an unknown stat. Try "python player_stats.py rating"')
