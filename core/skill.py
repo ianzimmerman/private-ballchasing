@@ -33,7 +33,7 @@ class PrivateTrueSkill:
         if member_count:
             replays = replays.filter(models.Replay.member_count >= member_count)
         if player_count:
-            replays = replays.filter(models.Replay.player_count >= player_count)
+            replays = replays.filter(models.Replay.player_count == player_count)
 
         for replay in replays:
         
