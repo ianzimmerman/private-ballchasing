@@ -90,8 +90,10 @@ if __name__ == "__main__":
     elif args.stat == 'team':
         if args.team:
             player_combos = [[player.id for player in [models.Player.from_name(p) for p in args.team.split(',')]]]
-        else:
+        elif args.pc:
             player_combos = list(combinations(MEMBER_IDS, args.pc//2))
+        else:
+            raise ValueError('need a team or a player count!')
         
         results = []
         for combo in player_combos:
