@@ -3,23 +3,18 @@ API_ENDPOINT="https://ballchasing.com/api/replays"
 API_RPS=2
 DATABASE_LOCATION="ballcruncher.db"
 MEMBER_IDS=[
-    "steam:76561197989552697",  # zimmian
-    "steam:76561197971120147",  # cybs
-    "steam:76561198025802656",  # rune
-    "steam:76561198139823365",  # ginge
-    "steam:76561198091031084",  # crispy
-    "steam:76561198027519363",  # alex
-    "steam:76561198220540264",  # phorenzic
-    "steam:76561198112287806",  # gurt
-    "steam:76561198099562760",  # 40
-    "steam:76561198067045839",  # advice
-    "steam:76561198150472393",  # matman
+    "steam:76561198137338111",
+    "steam:76561198047021380",
+    "steam:76561198104319396",
+    "steam:76561197960851252",
+    "steam:76561198076604643",
+    "steam:76561198059803024",
+    "steam:76561198370122085",
+    "steam:76561198018050715",
+    "steam:76561198043528857",
+    "steam:76561198257498510",
 ]
 GROUP_IDS = [
-    "privs5-v7bdo693q9",
-    "privs4-o5dnks9y2m",
-    "privs3-k0clhuljbd",
-    "privs2-kprtj3ixmk",
-    "privs1-wgjobozoot"
+    "jssr-private-matches-mefp6ptk80",
 ]
 DRAW_PROBABILITY = 0
