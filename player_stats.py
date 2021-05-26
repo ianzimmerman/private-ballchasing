@@ -1,19 +1,21 @@
 import argparse
 from typing import List
 
-import trueskill
+from core.skill import PrivateTrueSkill
 from tabulate import tabulate
 
 from config import MEMBER_IDS
 from core.stats.player import PlayerStats
 from db import models, session
 
-ENV = trueskill.TrueSkill(draw_probability=0)
+ENV = PrivateTrueSkill().env
 parser = argparse.ArgumentParser(description='Find some stats')
 parser.add_argument('stat', type=str, choices=['rating', 'headsup'])
 parser.add_argument('--pc', type=int, help='limit to lobbies with player count (pc)')
 parser.add_argument('--mc', type=int, help='limit to lobbies with member count (mc)')
-parser.add_argument('--min', type=int, help='limit to min x games played')
+
+parser.add_argument('--min', type=int, help='limit display to min x games played')
+
 parser.add_argument('--p1', type=str, help='player 1 nick name')
 parser.add_argument('--p2', type=str, help='player 2 nick name')
 
@@ -25,12 +27,14 @@ def stat_print(stats: List[dict], sort_key: str=None):
 if __name__ == "__main__":
     args = parser.parse_args()
 
+    ps = PlayerStats(args.pc, args.mc)
+
     if args.stat == 'rating':
         q = session.query(models.Player)
         players = sorted(q.all(), key=ENV.expose, reverse=True)
         leaders = []
         for p in players:
-            stats = PlayerStats(args.pc, args.mc).win_rate(p)
+            stats = ps.win_rate(p)
             if stats and (stats.get('games_played', 0) >= (args.min or 25)):
                 leaders.append(stats)
         
@@ -41,7 +45,6 @@ if __name__ == "__main__":
         if not args.p1:
             raise ValueError('needs --p1=nick')
         
-        stats = PlayerStats(args.pc, args.mc)
         player1 = models.Player.from_name(args.p1)
         player2 = models.Player.from_name(args.p2) if args.p2 else None
         
@@ -52,11 +55,11 @@ if __name__ == "__main__":
             print(', '.join(player2.aka[:4]))
             print(" ")
             headsup.append(
-                stats.head_2_head(player1, player2)
+                ps.head_2_head(player1, player2)
             )
 
-            p1_wins = stats.win_rate(player1)
-            p2_wins = stats.win_rate(player2)
+            p1_wins = ps.win_rate(player1)
+            p2_wins = ps.win_rate(player2)
             divider = {}
             deltas = {}
             for k, v in p1_wins.items():
@@ -71,9 +74,10 @@ if __name__ == "__main__":
         elif player1:
             print(" ")
             print(', '.join(player1.aka[:4]))
+            print(f'TrueSkill: {round(ENV.expose(player1.rating), 1)}')
             print(" ")
             for player2 in session.query(models.Player).filter(models.Player.id != player1.id):
-                if h2h := stats.head_2_head(player1, player2):
+                if h2h := ps.head_2_head(player1, player2):
                     headsup.append(
                         h2h
                     )

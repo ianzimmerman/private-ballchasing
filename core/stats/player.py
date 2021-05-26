@@ -7,11 +7,13 @@ from core.skill import PrivateTrueSkill
 
 
 class PlayerStats:
-    def __init__(self, lobby_size: int=None, member_count: int=None) -> None:
+    def __init__(self, player_count: int=None, member_count: int=None) -> None:
         self.env = PrivateTrueSkill().env
-        self.lobby_size = lobby_size
+        self.player_count = player_count
         self.member_count = member_count
-    
+
+        PrivateTrueSkill().rate_matches(player_count, member_count)
+
     def win_rate(self, player: models.Player):
         q = session.query(
             func.sum(
@@ -27,7 +29,8 @@ class PlayerStats:
                 )
             ).label('expected_win_rate'),
             func.count(models.PlayerResult.replay_id).label('games_played'),
-            models.Replay.player_count
+            models.Replay.player_count,
+            models.PlayerResult.replay_id
         ).group_by(
             models.PlayerResult.player_id
         ).filter(
@@ -35,9 +38,9 @@ class PlayerStats:
             models.Replay.id == models.PlayerResult.replay_id
         )
 
-        if self.lobby_size:
+        if self.player_count:
             q = q.filter(
-                models.Replay.player_count==self.lobby_size
+                models.Replay.player_count==self.player_count
             )
         
         if self.member_count:
@@ -110,9 +113,9 @@ class PlayerStats:
             text('in_match = 2')
         )
 
-        if self.lobby_size:
+        if self.player_count:
             q = q.filter(
-                models.Replay.player_count==self.lobby_size
+                models.Replay.player_count==self.player_count
             )
         
         if self.member_count:
@@ -129,6 +132,7 @@ class PlayerStats:
         result = {
             'p1': p1.display_name,
             'p2': p2.display_name,
+            'trueskill_delta': round(self.env.expose(p1.rating) - self.env.expose(p2.rating),1),
             'games_played': all_games,
         }
 

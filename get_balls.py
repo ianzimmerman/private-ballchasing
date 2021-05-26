@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from config import GROUP_IDS, MEMBER_IDS
 from core.balls import Balls
 from core.match import Match
-from core.skill import PrivateTrueSkill
+# from core.skill import PrivateTrueSkill
 from db import models, session
 
 # months_to_grab = 18
@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
         valid_replays = 0
         for r in replays:
-            m = Match(r)
+            m = Match(r, args.min_members)
             if m.is_valid:
                 replay = session.query(models.Replay).filter(models.Replay.match_hash==m.match_hash).first()
                 if replay:
@@ -96,8 +96,8 @@ if __name__ == '__main__':
                 session.commit()
         print(f"{valid_replays} replays Saved.", flush=True)
     
-    print('Rating Matches...', end=" ", flush=True)
-    pts = PrivateTrueSkill()
-    pts.rate_matches(args.min_members)
-    print('Complete!')
+    # print('Rating Matches...', end=" ", flush=True)
+    # pts = PrivateTrueSkill()
+    # pts.rate_matches(args.min_members)
+    # print('Complete!')
     session.close()

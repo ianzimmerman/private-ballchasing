@@ -1,6 +1,6 @@
 import itertools
 import math
-
+from typing import List
 import trueskill
 
 from config import DRAW_PROBABILITY
@@ -22,18 +22,20 @@ class PrivateTrueSkill:
         # ts = trueskill.global_env()
         return self.env.cdf(delta_mu / denom)
 
-    def rate_matches(self, min_members:int=None):
+    def rate_matches(self, player_count: int, member_count: int):
         session.query(models.Player).update({
             models.Player.mu: self.new_rating().mu,
             models.Player.sigma: self.new_rating().sigma
         })
         session.commit()
     
-        replay_query = session.query(models.Replay).order_by(models.Replay.date.asc())
-        if min_members:
-            replay_query = replay_query.filter(models.Replay.member_count >= min_members)
+        replays = session.query(models.Replay).order_by(models.Replay.date.asc())
+        if member_count:
+            replays = replays.filter(models.Replay.member_count >= member_count)
+        if player_count:
+            replays = replays.filter(models.Replay.player_count >= player_count)
 
-        for replay in replay_query:
+        for replay in replays:
         
             rating_groups = [
                 { p.id: p.rating for p in replay.winners },
