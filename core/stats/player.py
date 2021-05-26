@@ -2,18 +2,16 @@ from schema import replay
 from db import models, session
 from sqlalchemy import func, case, text, and_
 from statistics import mean
+from core.skill import PrivateTrueSkill
+
 
 
 class PlayerStats:
-    def __init__(self, player_id=None, player_name=None) -> None:
-        if player_id:
-            self.player = session.query(models.Player).get(player_id)
-        elif player_name:
-            self.player = models.Player.from_name(player_name)
-        else:
-            raise ValueError("Requires player id or player name")
+    def __init__(self, lobby_size: int=None) -> None:
+        self.env = PrivateTrueSkill().env
+        self.lobby_size = lobby_size
     
-    def win_rate(self, player_count=None):
+    def win_rate(self, player: models.Player):
         q = session.query(
             func.sum(
                 case(
@@ -32,35 +30,39 @@ class PlayerStats:
         ).group_by(
             models.PlayerResult.player_id
         ).filter(
-            models.PlayerResult.player_id==self.player.id,
+            models.PlayerResult.player_id==player.id,
             models.Replay.id == models.PlayerResult.replay_id
         )
 
-        if player_count:
+        if self.lobby_size:
             q = q.filter(
-                models.Replay.player_count==player_count
+                models.Replay.player_count==self.lobby_size
             )
 
-        result = q.first()
-        if result:
-            wr = round(result.games_won/result.games_played, 3)
-            ewr = round(result.expected_win_rate, 3)
-            wae = round((result.games_won - (result.expected_win_rate * result.games_played))/result.games_played, 3)*100   # round((wr-ewr)/wr, 3) if wr else 0
-            result_dict = {
-                'games_won': result.games_won,
-                'games_played': result.games_played,
+        stats = q.first()
+
+        results = {
+            'display_name': player.display_name,
+            'trueskill': round(self.env.expose(player.rating),1)
+        }
+
+        if stats:
+            wr = round(stats.games_won/stats.games_played, 3)
+            ewr = round(stats.expected_win_rate, 3)
+            wae = round((stats.games_won - (stats.expected_win_rate * stats.games_played))/stats.games_played, 3)*100   # round((wr-ewr)/wr, 3) if wr else 0
+            results.update({
+                'games_won': stats.games_won,
+                'games_played': stats.games_played,
                 'win_rate': wr,
                 'expected_win_rate': ewr,
                 'wae': wae
-            }
+            })
         
-            return result_dict
-        
-        return {}
-
-    def head_2_head(self, player2_name: str):
-        p1 = self.player
-        p2 = models.Player.from_name(player2_name)
+        return results
+    
+    def head_2_head(self, player1: models.Player, player2: models.Player):
+        p1 = player1
+        p2 = player2
 
         t = models.PlayerResult
 
@@ -99,6 +101,11 @@ class PlayerStats:
         ).having(
             text('in_match = 2')
         )
+
+        if self.lobby_size:
+            q = q.filter(
+                models.Replay.player_count==self.lobby_size
+            )
 
         matches = q.all()
 

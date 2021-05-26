@@ -18,7 +18,7 @@ class Player(Base):
     mu = Column(Float)
     sigma = Column(Float)
 
-    aliases = relationship("Alias", back_populates="player")
+    aliases = relationship("Alias", back_populates="player", order_by="desc(Alias.count)")
     results = relationship("PlayerResult")
     
     @property
@@ -40,9 +40,13 @@ class Player(Base):
 
         return dn.name
     
+    @property
+    def aka(self):
+        return [f"{n.name} ({n.count})" for n in self.aliases]
+    
     @staticmethod
     def from_name(name: str):
-        alias = session.query(Alias).filter(Alias.name.ilike(f"{name}")).one()
+        alias = session.query(Alias).filter(Alias.name.ilike(f"{name}")).order_by(Alias.count.desc()).first()
         try:
             return alias.player
         except Exception as e:
