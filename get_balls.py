@@ -1,6 +1,9 @@
+import argparse
+# from datetime import datetime, timedelta
+
 from sqlalchemy.exc import IntegrityError
-from datetime import datetime, timedelta
-from config import MEMBER_IDS, GROUP_IDS
+
+from config import GROUP_IDS, MEMBER_IDS
 from core.balls import Balls
 from core.match import Match
 from core.skill import PrivateTrueSkill
@@ -13,21 +16,37 @@ from db import models, session
 # dates = [date_today-(n*delta) for n in range(months_to_grab)]
 # print(dates)
 
+
+parser = argparse.ArgumentParser(description='chase some balls')
+parser.add_argument('method', type=str, choices=['members', 'groups'])
+parser.add_argument('--min_members', type=int, help="at least how many members should be present?")
+
 if __name__ == '__main__':
+    args = parser.parse_args()
+    print(' ')
+    print(args.method)
+    print(' ')
+
     balls = Balls()
-    for id in MEMBER_IDS:
-    #for id in GROUP_IDS:
+    chase_list = MEMBER_IDS if args.method == 'members' else GROUP_IDS
+    
+    for id in chase_list:
         print(f"Fetching replays for {id}...", end=" ", flush=True)
-        # replays = [] #balls.chase_groups(id)
-        replays = balls.chase(id)
-        # for date in dates:
-        #     replays.extend(balls.chase(id, date))
+        if args.method == 'members':
+            replays = balls.chase(id)
+        elif args.method == 'groups':
+            replays = balls.chase_groups(id)
 
         print(f"{len(replays)} replays returned...", end=" ", flush=True)
-        for i, r in enumerate(replays):
+
+        valid_replays = 0
+        for r in replays:
             m = Match(r)
-            if m.group_member_count > 2 and r.duration >= 300:
-                try:
+            if m.is_valid:
+                replay = session.query(models.Replay).filter(models.Replay.match_hash==m.match_hash).first()
+                if replay:
+                    continue
+                else:
                     replay = models.Replay(
                         id=r.id,
                         match_hash=m.match_hash,
@@ -37,13 +56,12 @@ if __name__ == '__main__':
                         playlist_id=r.playlist_id,
                         date=r.date,
                         duration=r.duration,
-                        player_count=len(m.players)
+                        player_count=len(m.players),
+                        member_count=m.group_member_count
                     )
                     session.add(replay)
                     session.commit()
-                except IntegrityError:
-                    session.rollback()
-                    continue
+                    valid_replays += 1
             else:
                 continue
 
@@ -76,10 +94,10 @@ if __name__ == '__main__':
                 )
 
                 session.commit()
-        print(f"Saved.", flush=True)
+        print(f"{valid_replays} replays Saved.", flush=True)
     
     print('Rating Matches...', end=" ", flush=True)
     pts = PrivateTrueSkill()
-    pts.rate_matches()
+    pts.rate_matches(args.min_members)
     print('Complete!')
     session.close()

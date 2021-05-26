@@ -22,7 +22,7 @@ class PrivateTrueSkill:
         # ts = trueskill.global_env()
         return self.env.cdf(delta_mu / denom)
 
-    def rate_matches(self):
+    def rate_matches(self, min_members:int=None):
         session.query(models.Player).update({
             models.Player.mu: self.new_rating().mu,
             models.Player.sigma: self.new_rating().sigma
@@ -30,6 +30,9 @@ class PrivateTrueSkill:
         session.commit()
     
         replay_query = session.query(models.Replay).order_by(models.Replay.date.asc())
+        if min_members:
+            replay_query = replay_query.filter(models.Replay.member_count >= min_members)
+
         for replay in replay_query:
         
             rating_groups = [

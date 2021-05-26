@@ -3,8 +3,9 @@ from config import MEMBER_IDS
 import hashlib
 
 class Match:
-    def __init__(self, replay: Replay) -> None:
+    def __init__(self, replay: Replay, min_members:int=None) -> None:
         self.replay = replay
+        self.min_members = min_members
         self.blue_score = self.replay.blue.goals or 0
         self.orange_score = self.replay.orange.goals or 0
 
@@ -44,7 +45,21 @@ class Match:
         
         return len(members_in_match)
 
-    
+    @property
+    def is_valid(self):
+        criteria = [
+            self.replay.duration >= 300,
+            len(self.players) > 1,
+            len(self.players)%2 == 0,
+        ]
+
+        if self.min_members:
+            criteria.append(
+                self.group_member_count >= self.min_members
+            )
+        
+        return all(criteria)
+
     @property
     def match_hash(self):
         match_date = self.replay.date.strftime("%Y%m%d")

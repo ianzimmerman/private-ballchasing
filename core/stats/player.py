@@ -7,9 +7,10 @@ from core.skill import PrivateTrueSkill
 
 
 class PlayerStats:
-    def __init__(self, lobby_size: int=None) -> None:
+    def __init__(self, lobby_size: int=None, member_count: int=None) -> None:
         self.env = PrivateTrueSkill().env
         self.lobby_size = lobby_size
+        self.member_count = member_count
     
     def win_rate(self, player: models.Player):
         q = session.query(
@@ -38,6 +39,11 @@ class PlayerStats:
             q = q.filter(
                 models.Replay.player_count==self.lobby_size
             )
+        
+        if self.member_count:
+            q = q.filter(
+                models.Replay.member_count>=self.member_count
+            )
 
         stats = q.first()
 
@@ -58,7 +64,9 @@ class PlayerStats:
                 'wae': wae,
             })
         
-        return results
+            return results
+        
+        return None
     
     def head_2_head(self, player1: models.Player, player2: models.Player):
         p1 = player1
@@ -106,6 +114,11 @@ class PlayerStats:
             q = q.filter(
                 models.Replay.player_count==self.lobby_size
             )
+        
+        if self.member_count:
+            q = q.filter(
+                models.Replay.member_count>=self.member_count
+            )
 
         matches = q.all()
 
@@ -140,4 +153,6 @@ class PlayerStats:
                 #'p2_beat_p1': len([m for m in matches if m.p1_win == 0 and m.p2_win == 1])/opposed_games
             })
         
-        return result
+            return result
+        
+        return None
