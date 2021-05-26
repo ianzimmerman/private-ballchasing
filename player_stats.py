@@ -11,8 +11,8 @@ from db import models, session
 ENV = PrivateTrueSkill().env
 parser = argparse.ArgumentParser(description='Find some stats')
 parser.add_argument('stat', type=str, choices=['rating', 'headsup'])
-parser.add_argument('--pc', type=int, help='limit to lobbies with player count (pc)')
-parser.add_argument('--mc', type=int, help='limit to lobbies with member count (mc)')
+parser.add_argument('--pc', type=int, help='limit to lobbies with exactly player count (pc)')
+parser.add_argument('--mc', type=int, help='limit to lobbies with minimum member count (mc)')
 
 parser.add_argument('--min', type=int, help='limit display to min x games played')
 
