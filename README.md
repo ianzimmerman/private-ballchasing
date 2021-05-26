@@ -26,9 +26,9 @@ Analytics for private matches from ballchasing.com
 | yogrt             |        22.6 |          98 |            206 |      0.476 |               0.471 |   0.5 |
 | Phorenzic         |        20.1 |          64 |            130 |      0.492 |               0.486 |   0.6 |
 
-```
-python player_stats.py headsup --p1=yog --p2=zim
+`python player_stats.py headsup --p1=yog --p2=zim`
  
+```
 yogrt (96), Yogurt (80), yogurt (59), gurt (12)
 zimmian (330)
 ```
